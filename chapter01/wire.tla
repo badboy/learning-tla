@@ -9,6 +9,7 @@ EXTENDS Integers
 
 define
     NoOverdrafts == \A p \in people: acc[p] >= 0
+    EventuallyConsistent == <>[](acc["alice"] + acc["bob"] = 10)
 end define;
 
 process Wire \in 1..2
@@ -31,6 +32,7 @@ VARIABLES people, acc, pc
 
 (* define statement *)
 NoOverdrafts == \A p \in people: acc[p] >= 0
+EventuallyConsistent == <>[](acc["alice"] + acc["bob"] = 10)
 
 VARIABLES sender, receiver, amount
 
@@ -75,5 +77,5 @@ Termination == <>(\A self \in ProcSet: pc[self] = "Done")
 
 =============================================================================
 \* Modification History
-\* Last modified Sun Mar 24 13:27:17 ART 2019 by jrediger
+\* Last modified Sun Mar 24 13:30:09 ART 2019 by jrediger
 \* Created Sun Mar 24 12:31:13 ART 2019 by jrediger
