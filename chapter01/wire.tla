@@ -18,9 +18,8 @@ process Wire \in 1..2
         amount \in 1..acc[sender];
 
 begin
-    CheckFunds:
+    CheckAndWithdraw:
         if amount <= acc[sender] then
-            Withdraw:
                 acc[sender] := acc[sender] - amount;
             Deposit:
                 acc[receiver] := acc[receiver] - amount;
@@ -46,25 +45,22 @@ Init == (* Global variables *)
         /\ sender = [self \in 1..2 |-> "alice"]
         /\ receiver = [self \in 1..2 |-> "bob"]
         /\ amount \in [1..2 -> 1..acc[sender[CHOOSE self \in  1..2 : TRUE]]]
-        /\ pc = [self \in ProcSet |-> "CheckFunds"]
+        /\ pc = [self \in ProcSet |-> "CheckAndWithdraw"]
 
-CheckFunds(self) == /\ pc[self] = "CheckFunds"
-                    /\ IF amount[self] <= acc[sender[self]]
-                          THEN /\ pc' = [pc EXCEPT ![self] = "Withdraw"]
-                          ELSE /\ pc' = [pc EXCEPT ![self] = "Done"]
-                    /\ UNCHANGED << people, acc, sender, receiver, amount >>
-
-Withdraw(self) == /\ pc[self] = "Withdraw"
-                  /\ acc' = [acc EXCEPT ![sender[self]] = acc[sender[self]] - amount[self]]
-                  /\ pc' = [pc EXCEPT ![self] = "Deposit"]
-                  /\ UNCHANGED << people, sender, receiver, amount >>
+CheckAndWithdraw(self) == /\ pc[self] = "CheckAndWithdraw"
+                          /\ IF amount[self] <= acc[sender[self]]
+                                THEN /\ acc' = [acc EXCEPT ![sender[self]] = acc[sender[self]] - amount[self]]
+                                     /\ pc' = [pc EXCEPT ![self] = "Deposit"]
+                                ELSE /\ pc' = [pc EXCEPT ![self] = "Done"]
+                                     /\ acc' = acc
+                          /\ UNCHANGED << people, sender, receiver, amount >>
 
 Deposit(self) == /\ pc[self] = "Deposit"
                  /\ acc' = [acc EXCEPT ![receiver[self]] = acc[receiver[self]] - amount[self]]
                  /\ pc' = [pc EXCEPT ![self] = "Done"]
                  /\ UNCHANGED << people, sender, receiver, amount >>
 
-Wire(self) == CheckFunds(self) \/ Withdraw(self) \/ Deposit(self)
+Wire(self) == CheckAndWithdraw(self) \/ Deposit(self)
 
 Next == (\E self \in 1..2: Wire(self))
            \/ (* Disjunct to prevent deadlock on termination *)
@@ -79,5 +75,5 @@ Termination == <>(\A self \in ProcSet: pc[self] = "Done")
 
 =============================================================================
 \* Modification History
-\* Last modified Sun Mar 24 12:50:13 ART 2019 by jrediger
+\* Last modified Sun Mar 24 13:27:17 ART 2019 by jrediger
 \* Created Sun Mar 24 12:31:13 ART 2019 by jrediger
