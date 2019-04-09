@@ -25,6 +25,8 @@ begin
             skip;
         end either;
     end while;
+
+    assert received = <<1, 2, 3>>;
 end algorithm; *)
 \* BEGIN TRANSLATION
 VARIABLES to_send, received, in_transit, pc
@@ -47,7 +49,9 @@ Lbl_1 == /\ pc = "Lbl_1"
                     /\ \/ /\ pc' = "Lbl_2"
                        \/ /\ TRUE
                           /\ pc' = "Lbl_1"
-               ELSE /\ pc' = "Done"
+               ELSE /\ Assert(received = <<1, 2, 3>>, 
+                              "Failure of assertion at line 29, column 5.")
+                    /\ pc' = "Done"
                     /\ UNCHANGED << to_send, in_transit >>
          /\ UNCHANGED received
 
@@ -70,5 +74,5 @@ Termination == <>(pc = "Done")
 
 =============================================================================
 \* Modification History
-\* Last modified Tue Apr 09 23:18:49 CEST 2019 by jrediger
+\* Last modified Tue Apr 09 23:21:09 CEST 2019 by jrediger
 \* Created Tue Apr 09 23:13:03 CEST 2019 by jrediger
