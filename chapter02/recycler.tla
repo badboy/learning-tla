@@ -15,18 +15,20 @@ variables
      >>,
     curr = ""; \* helper: current item
 
+macro add_item(type) begin
+    bins[type] := bins[type] \union {curr};
+    capacity[type] := capacity[type] - curr.size;
+    count[type] := count[type] + 1;
+end macro
+
 begin
     while items /= <<>> do
         curr := Head(items);
         items := Tail(items);
         if curr.type = "recycle" /\ curr.size < capacity.recycle then
-            bins.recycle := bins.recycle \union {curr};
-            capacity.recycle := capacity.recycle - curr.size;
-            count.recycle := count.recycle + 1;
+            add_item("recycle");
         elsif curr.size < capacity.trash then
-            bins.trash := bins.trash \union {curr};
-            capacity.trash := capacity.trash - curr.size;
-            count.trash := count.trash + 1;
+            add_item("trash");
         end if
     end while;
 
@@ -57,23 +59,23 @@ Lbl_1 == /\ pc = "Lbl_1"
                THEN /\ curr' = Head(items)
                     /\ items' = Tail(items)
                     /\ IF curr'.type = "recycle" /\ curr'.size < capacity.recycle
-                          THEN /\ bins' = [bins EXCEPT !.recycle = bins.recycle \union {curr'}]
-                               /\ capacity' = [capacity EXCEPT !.recycle = capacity.recycle - curr'.size]
-                               /\ count' = [count EXCEPT !.recycle = count.recycle + 1]
+                          THEN /\ bins' = [bins EXCEPT !["recycle"] = bins["recycle"] \union {curr'}]
+                               /\ capacity' = [capacity EXCEPT !["recycle"] = capacity["recycle"] - curr'.size]
+                               /\ count' = [count EXCEPT !["recycle"] = count["recycle"] + 1]
                           ELSE /\ IF curr'.size < capacity.trash
-                                     THEN /\ bins' = [bins EXCEPT !.trash = bins.trash \union {curr'}]
-                                          /\ capacity' = [capacity EXCEPT !.trash = capacity.trash - curr'.size]
-                                          /\ count' = [count EXCEPT !.trash = count.trash + 1]
+                                     THEN /\ bins' = [bins EXCEPT !["trash"] = bins["trash"] \union {curr'}]
+                                          /\ capacity' = [capacity EXCEPT !["trash"] = capacity["trash"] - curr'.size]
+                                          /\ count' = [count EXCEPT !["trash"] = count["trash"] + 1]
                                      ELSE /\ TRUE
                                           /\ UNCHANGED << capacity, bins, 
                                                           count >>
                     /\ pc' = "Lbl_1"
                ELSE /\ Assert(capacity.trash >= 0 /\ capacity.recycle >= 0, 
-                              "Failure of assertion at line 33, column 5.")
-                    /\ Assert(Cardinality(bins.trash) = count.trash, 
-                              "Failure of assertion at line 34, column 5.")
-                    /\ Assert(Cardinality(bins.recycle) = count.recycle, 
                               "Failure of assertion at line 35, column 5.")
+                    /\ Assert(Cardinality(bins.trash) = count.trash, 
+                              "Failure of assertion at line 36, column 5.")
+                    /\ Assert(Cardinality(bins.recycle) = count.recycle, 
+                              "Failure of assertion at line 37, column 5.")
                     /\ pc' = "Done"
                     /\ UNCHANGED << capacity, bins, count, items, curr >>
 
@@ -89,5 +91,5 @@ Termination == <>(pc = "Done")
 
 =============================================================================
 \* Modification History
-\* Last modified Tue Apr 09 23:05:01 CEST 2019 by jrediger
+\* Last modified Tue Apr 09 23:06:20 CEST 2019 by jrediger
 \* Created Tue Apr 09 22:53:18 CEST 2019 by jrediger
